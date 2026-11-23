@@ -46,6 +46,14 @@ def main():
         print("copy failed: " + str(exc), file=sys.stderr)
         return 1
 
+    # G15: the output must be readable by every user (file 0644, dir 0755).
+    try:
+        os.chmod(out_dir, 0o755)
+        os.chmod(destination, 0o644)
+    except OSError as exc:
+        print("warning: could not set output modes: " + str(exc),
+              file=sys.stderr)
+
     if os.path.getsize(source) != os.path.getsize(destination):
         print("size mismatch after copy", file=sys.stderr)
         return 1
