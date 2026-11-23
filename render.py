@@ -108,7 +108,7 @@ MEDIUM = [
      "Prosecutors confirm all three fallen objects were Russian Kh-101 missiles.",
      "missile"),
     (12, "BEPICOLOMBO ORBITS MERCURY", "MERCURY", "WORLD", "SPACE",
-     "CONFIRMED", "2ND",
+     "CONFIRMED", "ORBIT",
      "Probe enters orbit around Mercury after an eight-year journey.",
      "space"),
     (13, "LIVERPOOL 4–0 MAN UTD", "LIVERPOOL", "EU", "SPORT",
@@ -199,8 +199,10 @@ PINS = {
     8: (56.5, 27.0, 26, 10),     # Hormuz
     9: (-53.8, -29.0, -6, -26),  # Tupancireta
     10: (127.0, 37.5, 22, -22),  # Seoul
-    11: (22.6, 51.2, -30, -24),  # Lublin
-    13: (-3.0, 53.4, -34, -20),  # Liverpool
+    11: (22.6, 51.2, -14, -24),  # Lublin (badge moved right: was -30,
+    # it touched badge 13; keep clear of pin 13's dot and pin 1's badge)
+    13: (-3.0, 53.4, -46, -20),  # Liverpool (badge moved left: was -34,
+    # it touched badge 11)
     14: (106.1, -6.2, 24, 12),   # Cikande
 }
 
@@ -446,21 +448,26 @@ def scene_ship(draw, box, big):
 def scene_moto(draw, box, big):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill=(233, 226, 208))
-    # track curve
-    draw.arc([x0 - 30, y0 + (y1 - y0) * 0.55, x1 + 10, y1 + 40], 200, 340,
+    # track curve, kept low so its top edge stays below the baked number
+    # (number zone ends ~y0+20; arc top edge ~y0+23) and its ends stay
+    # out of the neighbouring cards' title lines
+    draw.arc([x0 - 10, y0 + (y1 - y0) * 0.66, x1 - 2, y1 + 30], 200, 340,
              fill=(90, 86, 76), width=10)
-    draw.arc([x0 - 30, y0 + (y1 - y0) * 0.55, x1 + 10, y1 + 40], 200, 340,
+    draw.arc([x0 - 10, y0 + (y1 - y0) * 0.66, x1 - 2, y1 + 30], 200, 340,
              fill=BRICK, width=3)
-    # motorcycle, side profile, no rider: two wheels + body + tank
-    cx, cy = x0 + (x1 - x0) * 0.52, y0 + (y1 - y0) * 0.58
-    for wx in (cx - 34, cx + 34):
-        draw.ellipse([wx - 15, cy - 15, wx + 15, cy + 15], outline=INK,
+    # motorcycle, side profile, no rider: two wheels + body + tank.
+    # Shifted right and shrunk so no part enters the baked-number zone
+    # (x0+8..x0+52, y0+4..y0+20): left wheel starts at x0+56, all frame
+    # lines start at x0+67 or further right.
+    cx, cy = x0 + (x1 - x0) * 0.62, y0 + (y1 - y0) * 0.66
+    for wx in (cx - 26, cx + 26):
+        draw.ellipse([wx - 11, cy - 11, wx + 11, cy + 11], outline=INK,
                      width=5)
         draw.ellipse([wx - 4, cy - 4, wx + 4, cy + 4], fill=INK)
-    draw.line([cx - 34, cy, cx + 34, cy], fill=INK, width=5)
-    draw.line([cx - 10, cy, cx + 8, cy - 22], fill=BRICK, width=7)
-    draw.line([cx + 8, cy - 22, cx + 30, cy - 6], fill=BRICK, width=6)
-    draw.line([cx - 34, cy, cx - 8, cy - 20], fill=INK, width=4)
+    draw.line([cx - 26, cy, cx + 26, cy], fill=INK, width=5)
+    draw.line([cx - 8, cy, cx + 8, cy - 20], fill=BRICK, width=7)
+    draw.line([cx + 8, cy - 20, cx + 26, cy - 6], fill=BRICK, width=6)
+    draw.line([cx - 26, cy, cx - 6, cy - 18], fill=INK, width=4)
     # checkered flag
     fx, fy = x1 - 34, y0 + 8
     for r in range(2):
@@ -611,15 +618,22 @@ def scene_missile(draw, box, big):
 def scene_space(draw, box, big):
     x0, y0, x1, y1 = box
     draw.rectangle(box, fill=(14, 20, 38))
-    _stars(draw, [x0, y0, x1, y1], 16)
+    # stars kept out of the baked-number zone (top-left, x0+8..x0+77,
+    # y0+4..y0+20): the old full-box field could put a star on a glyph
+    _stars(draw, [x0 + 80, y0, x1, y1], 9, seed=7)
+    _stars(draw, [x0, y0 + 24, x0 + 80, y1], 7, seed=11)
     # Mercury: cratered orange disc, small enough for a 48 px scene
     cx, cy, r = x0 + (x1 - x0) * 0.68, y0 + (y1 - y0) * 0.56, 17
     draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(196, 120, 60))
     for (ox, oy, orr) in ((-7, -5, 4), (5, 3, 5), (-1, 7, 3), (7, -7, 3)):
         draw.ellipse([cx + ox - orr, cy + oy - orr, cx + ox + orr,
                       cy + oy + orr], fill=(160, 92, 44))
-    # dashed orbit + spacecraft, left half, below the baked number
-    draw.arc([x0 + 8, y0 + 6, x1 - 8, y1 - 6], 200, 340, fill=WHITE, width=2)
+    # orbit arc + spacecraft, lower-left, below the baked number.
+    # The old full-width arc (top y0+6) crossed the number "2ND"; this
+    # arc stays in the lower-left (top y0+24, right end x0+80), clear of
+    # both the number and the Mercury disc.
+    draw.arc([x0 + 8, y0 + 24, x0 + 80, y1 - 2], 200, 340, fill=WHITE,
+             width=2)
     sx, sy = x0 + 30, y0 + (y1 - y0) * 0.66
     draw.rectangle([sx - 8, sy - 6, sx + 8, sy + 6], fill=(200, 200, 200))
     draw.rectangle([sx - 26, sy - 3, sx - 8, sy + 3], fill=(47, 93, 138))
@@ -663,10 +677,13 @@ def scene_factory(draw, box, big):
     draw.rectangle([fx0, fy, fx0 + 74, y1 - 8], fill=(110, 100, 88))
     draw.polygon([(fx0, fy), (fx0 + 18, fy - 14), (fx0 + 56, fy - 14),
                   (fx0 + 74, fy)], fill=(90, 80, 70))
-    draw.rectangle([fx0 + 78, fy - 26, fx0 + 90, y1 - 8], fill=(90, 80, 70))
+    draw.rectangle([fx0 + 78, fy - 22, fx0 + 90, y1 - 8], fill=(90, 80, 70))
+    # smoke, kept fully inside the scene box: the old offsets
+    # (fy-34-k*12) drew up to 58 px above the box and covered the text
+    # of the card above; now the highest puff top is y0+2
     for k in range(3):
         sx = fx0 + 84 - k * 4
-        sy = fy - 34 - k * 12
+        sy = fy - 8 - k * 4
         draw.ellipse([sx - 7, sy - 5, sx + 7, sy + 5], fill=(160, 160, 160))
     # flames on the roof, kept below the baked number
     for (ox, oy, s) in ((0.35, 0.62, 9), (0.55, 0.58, 12), (0.75, 0.64, 8)):
@@ -904,7 +921,10 @@ def draw_lead_hero(draw, box):
     # number badge + status chip over the illustration's bottom edge
     number_badge(draw, x0 + 10, y0 + ill_h - 10, num, region, size=22)
     status_chip(draw, x0 + 40, y0 + ill_h - 8, status)
-    draw_text(draw, (x1 - 118, y0 + ill_h - 8),
+    # place/field label, fully inside the illustration: the old y
+    # (ill_h-8) put the lower half of the text below the illustration
+    # edge, on the white card, so white-on-white cut it in half
+    draw_text(draw, (x1 - 118, y0 + ill_h - 18),
               "%s · %s" % (place, field), F_SANS_B(10), WHITE)
     # headline + deck
     ty = y0 + ill_h + 14
